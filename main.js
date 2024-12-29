@@ -39,19 +39,37 @@ function main() {
         return ({x, y}) => rect(x, y, size, size, fillColor, strokeColor);
     }
 
+    function hash({x, y}) {
+        return JSON.stringify({x, y});
+    }
+
     const gridDot = makeGridDot(g.DOT_SIZE, 'grey');
     const gridSq = makeGridSq(g.SIZE, 'lightgrey', 'grey');
 
-    for (let y = 0; y <= g.HEIGHT; y += g.SIZE) {
-        for (let x = 0; x <= g.WIDTH; x += g.SIZE) {
-            gridSq({x, y});
-        }   
+    const _state = (() => {
+        const _state = {};
+        for (let y = 0; y <= g.HEIGHT; y += g.SIZE) {
+            for (let x = 0; x <= g.WIDTH; x += g.SIZE) {
+                _state[hash({x, y})] = {
+                    fill: true,
+                    pos: {x, y}
+                };
+            }
+        }
+        return _state;
+    })();
+
+    function render(state) {
+
+        for (const {fill, pos: {x, y}} of Object.values(state)) {
+            if (fill) gridSq({x, y});
+        }
+         
+        for (const {fill, pos: {x, y}} of Object.values(state)) {
+            if (fill) gridDot({x, y});
+        }
+
     }
 
-    for (let y = 0; y <= g.HEIGHT; y += g.SIZE) {
-        for (let x = 0; x <= g.WIDTH; x += g.SIZE) {
-            gridDot({x, y});
-        }   
-    }
-
+    requestAnimationFrame(() => render(_state));
 }
