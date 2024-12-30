@@ -1,5 +1,7 @@
 function main() {
 
+    const { data } = squares();
+
     // Constants and variables
     const g = {};
     g.DOT_SIZE= 6;
@@ -28,18 +30,76 @@ function main() {
     }
 
     function makeGridSq(size, fillColor, strokeColor) {
-        function rect(x, y, width, height, fillColor, strokeColor) {
-            ctx.lineWidth = 2;
-            ctx.fillStyle = fillColor;
-            ctx.strokeStyle = strokeColor;
-            ctx.beginPath();
-            ctx.rect(x, y, width, height);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.rect(x, y, width, height);
-            ctx.stroke();
+        function getVerticies({x, y}, mask) {
+            const { type, shape } = data(mask);
+            
+            const vert = [];
+            if (type === "SINGLE") {
+                for (const {x: xs, y: ys} of shape) {
+                    vert.push({
+                        x: x + xs * g.SIZE,
+                        y: y + ys * g.SIZE, 
+                    });
+                }
+            } else { // type === "LIST"
+                for (const lst of shape) {
+                    const vs = [];
+                    for (const {x: xs, y: ys} of lst) {
+                        vs.push({
+                            x: x + xs * g.SIZE,
+                            y: y + ys * g.SIZE, 
+                        });
+                    }
+                    vert.push(vs);
+                }
+            }
+
+            return {
+                type,
+                vert
+            };
         }
-        return ({x, y}) => rect(x, y, size, size, fillColor, strokeColor);
+        function drawPath(path) {
+            ctx.beginPath();
+            ctx.moveTo(path[0].x, path[0].y);
+            for (let i = 1; i < path.length; i++) {
+                const {x: vx, y: vy} = path[i];
+                ctx.lineTo(vx, vy);
+            }
+            ctx.fill();
+        }
+        function rect(x, y, mask, width, height, fillColor, strokeColor) {
+            const {type, vert} = getVerticies({x, y}, mask);
+            if (vert.length > 0) {
+                ctx.lineWidth = 2;
+                ctx.fillStyle = fillColor;
+                ctx.strokeStyle = strokeColor;
+                if (type === "SINGLE") {
+                    drawPath(vert);
+                } else {
+                    drawPath(vert[0]);
+                    drawPath(vert[1]);
+                }
+            }
+        }
+        return ({x, y}, mask) => rect(x, y, mask, size, size, fillColor, strokeColor);
+    }
+
+    function getMask(state, {x, y}) {
+        const get = h => {
+            if (h in state.dots) {
+                return state.dots[h].fill ? 1 : 0;
+            } else {
+                return 0;
+            }
+        }
+        const a = get(hash({x, y}));
+        const b = get(hash({x: x + g.SIZE, y}));
+        const c = get(hash({x: x + g.SIZE, y: y + g.SIZE}));
+        const d = get(hash({x, y: y + g.SIZE}));
+        const p = (n, k) => n * Math.pow(2, k);
+        const value = p(a, 3) + p(b, 2) + p(c, 1) + d;
+        return value;
     }
 
     function drawBrush(state) {
@@ -121,7 +181,7 @@ function main() {
         ctx.clearRect(0, 0, g.WIDTH, g.HEIGHT);
 
         for (const {fill, pos: {x, y}} of Object.values(state.dots)) {
-            if (fill) gridSq({x, y});
+            gridSq({x, y}, getMask(state, {x, y}));
         }
          
         for (const {fill, pos: {x, y}} of Object.values(state.dots)) {
