@@ -148,7 +148,8 @@ function main() {
         }
         const points = pointsInRange(state);
         for (const point of points) {
-            state.dots[hash(point)].fill = value;
+            const h = hash(point);
+            if (h in state.dots) state.dots[h].fill = value;
         }
     }
 
@@ -208,6 +209,15 @@ function main() {
 
     canvas.addEventListener('mouseup', e => {
         setState(state => state.mousedown = false);
-        
+    });
+
+    canvas.addEventListener('wheel', e => {
+        if (e.deltaY < 0) { // UP
+            setState(state => state.brush_radius += 2);
+
+        } else { // e.deltaY > 0 // DOWN
+            setState(state => state.brush_radius -= 2);
+
+        }
     });
 }
