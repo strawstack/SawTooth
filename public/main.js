@@ -224,10 +224,21 @@ export function main() {
         }
     });
 
+    // Save and Load
     loadState({ 
         save: () => {
-            return JSON.stringify({key: "example save data"})
+            const csave = JSON.parse(JSON.stringify(_state));
+            csave.mousedown = false;
+            csave.mouse = {x: 0, y: 0};
+            return JSON.stringify(csave);
         }, 
-        load: (data) => console.log(`Loaded: ${data}`)
+        load: (data) => {
+            const cstate = JSON.parse(data);
+            console.log(cstate);
+            for (const k in cstate) {
+                _state[k] = cstate[k];
+            }
+            requestAnimationFrame(() => render(_state));
+        }
     });
 }
