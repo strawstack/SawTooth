@@ -22,14 +22,14 @@ export function main() {
     canvas.style.height = `${g.HEIGHT}px`;
 
     // Helpers
-    function makeGridDot(size, color) {
+    function makeGridDot(size) {
         function dot(x, y, size, color) {
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(x, y, size, 0, 2 * Math.PI);
             ctx.fill();
         }
-        return ({x, y}) => dot(x, y, size, color);
+        return ({x, y}, color) => dot(x, y, size, color);
     }
 
     function makeGridSq(size, fillColor, strokeColor) {
@@ -116,7 +116,7 @@ export function main() {
         return JSON.stringify({x, y});
     }
 
-    const gridDot = makeGridDot(g.DOT_SIZE, 'grey');
+    const gridDot = makeGridDot(g.DOT_SIZE);
     const gridSq = makeGridSq(g.SIZE, 'lightgrey', 'grey');
 
     function mouse(e) {
@@ -189,7 +189,7 @@ export function main() {
         }
          
         for (const {fill, pos: {x, y}} of Object.values(state.dots)) {
-            if (fill) gridDot({x, y});
+            gridDot({x, y}, fill ? 'grey' : '#616161');
         }
 
         drawBrush(state);
@@ -200,13 +200,13 @@ export function main() {
     // Events
     canvas.addEventListener('mousedown', e => {
         setState(state => {state.mousedown = true});
-        togglePoint(_state, false);
+        togglePoint(_state, e.shiftKey);
     });
     
     canvas.addEventListener('mousemove', e => {
         setState(state => {state.mouse = mouse(e)});
         if (_state.mousedown) {
-            togglePoint(_state, false);
+            togglePoint(_state, e.shiftKey);
         }
     });
 
