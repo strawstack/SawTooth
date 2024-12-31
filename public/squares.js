@@ -1,10 +1,5 @@
-function squares() {
+export function squares() {
     
-    function dprint(value) {
-        console.log(value);
-        return value;
-    }
-
     function rot(coords) {
         return coords
             .map(({x, y}) => { return {x: x - 0.5, y: y - 0.5}})

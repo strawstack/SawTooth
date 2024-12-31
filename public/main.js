@@ -1,4 +1,7 @@
-function main() {
+import { squares } from './squares.js';
+import { loadState } from './loadState.js';
+
+export function main() {
 
     const { data } = squares();
 
@@ -145,7 +148,7 @@ function main() {
                 }
             }
             return points;
-        }
+        }``
         const points = pointsInRange(state);
         for (const point of points) {
             const h = hash(point);
@@ -219,5 +222,12 @@ function main() {
             setState(state => state.brush_radius -= 2);
 
         }
+    });
+
+    loadState({ 
+        save: () => {
+            return JSON.stringify({key: "example save data"})
+        }, 
+        load: (data) => console.log(`Loaded: ${data}`)
     });
 }
